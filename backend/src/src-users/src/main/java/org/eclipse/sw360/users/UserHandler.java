@@ -18,6 +18,7 @@ import org.eclipse.sw360.users.db.UserDatabaseHandler;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class UserHandler implements UserService.Iface {
 
     UserDatabaseHandler db;
 
-    public UserHandler() throws MalformedURLException {
+    public UserHandler() throws IOException {
         db = new UserDatabaseHandler(DatabaseSettings.getConfiguredHttpClient(), DatabaseSettings.COUCH_DB_USERS);
     }
 

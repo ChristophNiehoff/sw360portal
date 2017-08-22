@@ -30,11 +30,9 @@ public class DisplayLicensesEdit extends NameSpaceAwareTag {
     private Set<String> licenseIds = new HashSet<>();
     private String userEmail = null;
     private String namespace;
-    private String onclick = "";
 
     public void setId(String id) {
         this.id = id;
-        onclick = String.format("showSetLicensesDialog('%s')", id);
     }
 
     public void setLicenseIds(Set<String> licenseIds) {
@@ -57,6 +55,7 @@ public class DisplayLicensesEdit extends NameSpaceAwareTag {
             } else {
                 printEmptyLicenses(display);
             }
+            display.append(String.format("<script>$(document).ready(function () { showLicenseDialogWrapper('%s'); })</script>", id));
 
             jspWriter.print(display.toString());
         } catch (Exception e) {
@@ -68,7 +67,7 @@ public class DisplayLicensesEdit extends NameSpaceAwareTag {
     private void printEmptyLicenses(StringBuilder display) {
         display.append(String.format("<label class=\"textlabel stackedLabel\" for=\"%sDisplay\">Licenses</label>", id))
                 .append(String.format("<input type=\"hidden\" readonly=\"\" value=\"\"  id=\"%s\" name=\"%s%s\"/>", id, namespace, id))
-                .append(String.format("<input class=\"clickable\" type=\"text\" readonly=\"\" placeholder=\"Click to set Licenses\" id=\"%sDisplay\" onclick=\"%s\" />", id, onclick));
+                .append(String.format("<input class=\"clickable\" type=\"text\" readonly=\"\" placeholder=\"Click to set Licenses\" id=\"%sDisplay\" />", id));
     }
 
     private void printLicenses(StringBuilder display, Collection<String> licenseIds) {
@@ -76,6 +75,6 @@ public class DisplayLicensesEdit extends NameSpaceAwareTag {
 
         display.append(String.format("<label class=\"textlabel stackedLabel\" for=\"%sDisplay\">Licenses</label>", id))
                 .append(String.format("<input type=\"hidden\" readonly=\"\" value=\"%s\" id=\"%s\" name=\"%s%s\"/>", licenseIdsStr, id, namespace, id))
-                .append(String.format("<input class=\"clickable\" type=\"text\" readonly=\"\" value=\"%s\" id=\"%sDisplay\" onclick=\"%s\" />", licenseIdsStr, id, onclick));
+                .append(String.format("<input class=\"clickable\" type=\"text\" readonly=\"\" value=\"%s\" id=\"%sDisplay\" />", licenseIdsStr, id));
     }
 }

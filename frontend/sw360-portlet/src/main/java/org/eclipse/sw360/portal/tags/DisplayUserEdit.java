@@ -118,13 +118,16 @@ public class DisplayUserEdit extends NameSpaceAwareTag {
                     .append(String.format("<input type=\"text\" readonly=\"\" value=\"%s\" id=\"%sDisplay\" ", userNames, id));
 
             if (!readonly) {
-                display.append(String.format(" onclick=\"showUserDialog(%s, '%s')\" ", multiUsers ? "true" : "false", id));
                 display.append(" placeholder=\"Click to edit\" class=\"clickable\" ");
             } else {
                 display.append(" placeholder=\"Will be set automatically\" ");
             }
 
             display.append("/>");
+
+            if(!readonly) {
+                display.append(String.format("<script>$(document).ready(function () { showUserDialogWrapper(%s, '%s'); })</script>", multiUsers ? "true" : "false", id));
+            }
 
             jspWriter.print(display.toString());
         } catch (Exception e) {

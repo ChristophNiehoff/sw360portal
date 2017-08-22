@@ -154,7 +154,8 @@
         </div>
     </div>
 
-    <jsp:include page="/html/utils/includes/searchAndSelect.jsp" />
+    <jsp:include page="/html/utils/includes/searchAndSelectUsers.jsp" />
+    <jsp:include page="/html/utils/includes/searchAndSelectLicenses.jsp" />
     <jsp:include page="/html/utils/includes/searchUsers.jsp" />
     <jsp:include page="/html/utils/includes/searchLicenses.jsp" />
     <%@ include file="/html/utils/includes/requirejs.jspf" %>

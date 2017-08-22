@@ -18,8 +18,11 @@ import org.eclipse.sw360.datahandler.couchdb.SummaryAwareRepository;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 import org.ektorp.support.View;
 
+import javax.jws.soap.SOAPBinding;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 
 /**
  * CRUD access for the User class
@@ -52,6 +55,40 @@ public class UserRepository extends SummaryAwareRepository<User> {
             byname = queryByPrefix("byname", name);
         }
         return makeSummaryFromFullDocs(SummaryType.SUMMARY, byname);
+    }
+
+    private List<User> removeDuplicateUsers(List<User> listUsers) {
+        List<User> listUsersUnique = new ArrayList<User>();
+        List<String> alreadyUsedIds = new ArrayList<String>();
+        for(User user : listUsers) {
+            if(!alreadyUsedIds.contains(user.getId())) {
+                alreadyUsedIds.add(user.getId());
+                listUsersUnique.add(user);
+            }
+        }
+        return listUsersUnique;
+    }
+
+    private static final String BY_NAME_AND_EMAIL_VIEW =
+            "function(doc) {" +
+                    "  if (doc.type == 'user') {" +
+                    "    emit(doc.lastname, doc);" +
+                    "    emit(doc.givenname, doc);" +
+                    "    emit(doc.email, doc);" +
+                    "  }" +
+                    "}";
+
+    @View(name = "bynameandemail", map = BY_NAME_AND_EMAIL_VIEW)
+    public List<User> searchByNameAndEmail(String name) {
+
+        final List<User> users_bynameandemail;
+        if (Strings.isNullOrEmpty(name)) {
+            users_bynameandemail = queryView("bynameandemail");
+        } else {
+            users_bynameandemail = queryByPrefix("bynameandemail", name);
+        }
+        List<User> users_unique = removeDuplicateUsers(users_bynameandemail);
+        return makeSummaryFromFullDocs(SummaryType.SUMMARY, users_unique);
     }
 
     @Override

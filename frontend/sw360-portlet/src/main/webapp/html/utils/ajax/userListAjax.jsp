@@ -16,6 +16,7 @@
 <jsp:useBean id="userList" type="java.util.List<org.eclipse.sw360.datahandler.thrift.users.User>"
              class="java.util.ArrayList" scope="request"/>
 <jsp:useBean id="how" type="java.lang.Boolean" scope="request"/>
+<jsp:useBean id="usersearchGotTruncated" type="java.lang.Boolean" scope="request"/>
 
 <core_rt:if test="${userList.size()>0}">
     <core_rt:forEach items="${userList}" var="entry">
@@ -29,17 +30,28 @@
                 <core_rt:if test="${how ==false}">
                         type="radio"
                 </core_rt:if>
-                        name="id" value="<sw360:out value="${entry.email}, ${entry.fullname}"/>">
+                        name="id" value="<sw360:out value="${entry.givenname},${entry.lastname},${entry.email},${entry.department},${entry.fullname}"/>">
             </td>
-            <td><sw360:out value="${entry.fullname}"/></td>
+            <td><sw360:out value="${entry.givenname}"/></td>
+            <td><sw360:out value="${entry.lastname}"/></td>
+            <td><sw360:DisplayUserEmail email="${entry.email}" bare="true"/></td>
+            <td><sw360:out value="${entry.department}"/></td>
         </tr>
     </core_rt:forEach>
 </core_rt:if>
 <core_rt:if test="${userList.size() == 0}">
     <tr>
-        <td colspan="2">
+        <td colspan="5">
             No user found with your search.
         </td>
     </tr>
 
 </core_rt:if>
+
+<script>
+    if("${usersearchGotTruncated}"=="true") {
+        $("#TruncationAlerter").show();
+    } else {
+        $("#TruncationAlerter").hide();
+    }
+</script>

@@ -63,6 +63,7 @@
     <link rel="stylesheet" href="<%=request.getContextPath()%>/css/sw360.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/webjars/jquery-ui/1.12.1/jquery-ui.css">
     <link rel="stylesheet" href="<%=request.getContextPath()%>/webjars/github-com-craftpip-jquery-confirm/3.0.1/jquery-confirm.min.css">
+    <link rel="stylesheet" href="<%=request.getContextPath()%>/css/dataTable_Siemens.css">
 
     <script src="<%=request.getContextPath()%>/js/releaseTools.js"></script>
     <!--include jQuery -->
@@ -123,7 +124,7 @@
         </form>
     </div>
 
-    <jsp:include page="/html/utils/includes/searchAndSelect.jsp" />
+    <jsp:include page="/html/utils/includes/searchAndSelectUsers.jsp" />
     <jsp:include page="/html/utils/includes/searchUsers.jsp" />
 </core_rt:if>
 

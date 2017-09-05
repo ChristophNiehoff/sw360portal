@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import static org.eclipse.sw360.datahandler.common.SW360Assert.assertNotEmpty;
 import static org.apache.commons.codec.digest.DigestUtils.sha1Hex;
 
 import org.apache.log4j.Logger;
+import org.eclipse.sw360.datahandler.thrift.attachments.CheckStatus;
 import org.ektorp.http.HttpClient;
 
 /**
@@ -75,7 +77,7 @@ public class AttachmentConnector extends AttachmentStreamConnector {
     }
 
     public void deleteAttachments(Collection<Attachment> attachments) {
-        Set<String> attachmentContentIds = getAttachmentContenIds(attachments);
+        Set<String> attachmentContentIds = getAttachmentContentIds(attachments);
         deleteAttachmentsByIds(attachmentContentIds);
     }
 
@@ -83,7 +85,7 @@ public class AttachmentConnector extends AttachmentStreamConnector {
         connector.deleteIds(attachmentContentIds, AttachmentContent.class);
     }
 
-    private Set<String> getAttachmentContenIds(Collection<Attachment> attachments) {
+    private Set<String> getAttachmentContentIds(Collection<Attachment> attachments) {
         return nullToEmptyCollection(attachments).stream()
                 .map(Attachment::getAttachmentContentId)
                 .collect(Collectors.toSet());
@@ -94,7 +96,16 @@ public class AttachmentConnector extends AttachmentStreamConnector {
         // otherwise, when `after` contains the same attachment (with the same id), but with one field changed (e.g. sha1),
         // then they are considered unequal and the set difference will contain this attachment and therefore
         // deleteAttachments(Collection<Attachment>) will delete an attachment that is present in `after`
-        deleteAttachmentsByIds(Sets.difference(getAttachmentContenIds(before), getAttachmentContenIds(after)));
+        Set<String> attachmentIdsAfter = getAttachmentContentIds(after);
+        Set<String> attachmentIdsToBeDeleted = new HashSet<>();
+
+        for(Attachment attachment : before) {
+            if(!attachmentIdsAfter.contains(attachment.getAttachmentContentId()) && attachment.getCheckStatus() != CheckStatus.ACCEPTED) {
+                attachmentIdsToBeDeleted.add(attachment.getAttachmentContentId());
+            }
+        }
+
+        deleteAttachmentsByIds(attachmentIdsToBeDeleted);
     }
 
     public String getSha1FromAttachmentContentId(String attachmentContentId) {

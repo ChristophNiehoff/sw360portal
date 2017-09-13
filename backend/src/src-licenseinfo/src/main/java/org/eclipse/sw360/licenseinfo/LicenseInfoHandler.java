@@ -13,6 +13,7 @@ package org.eclipse.sw360.licenseinfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.eclipse.sw360.attachments.db.AttachmentDatabaseHandler;
@@ -31,6 +32,7 @@ import org.eclipse.sw360.licenseinfo.outputGenerators.OutputGenerator;
 import org.eclipse.sw360.licenseinfo.outputGenerators.XhtmlGenerator;
 import org.eclipse.sw360.licenseinfo.parsers.*;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -47,10 +49,13 @@ import static org.eclipse.sw360.datahandler.common.SW360Assert.assertNotNull;
  */
 public class LicenseInfoHandler implements LicenseInfoService.Iface {
 
+    public static final String LICENSE_INFO_HEADER_TEXT = "licenseInfoHeaderText";
     public static final String LICENSE_INFO_RESULTS_CONTEXT_PROPERTY = "licenseInfoResults";
     public static final String LICENSES_CONTEXT_PROPERTY = "licenses";
     public static final String ALL_LICENSE_NAMES_WITH_TEXTS = "allLicenseNamesWithTexts";
     public static final String ACKNOWLEDGEMENTS_CONTEXT_PROPERTY = "acknowledgements";
+
+    private static final String DEFAULT_LICENSE_INFO_HEADER_FILE = "/DefaultLicenseInfoHeader.txt";
 
     private final LicenseInfoParser[] parsers;
 
@@ -143,9 +148,7 @@ public class LicenseInfoHandler implements LicenseInfoService.Iface {
     }
 
     @Override
-    public String getLicenseInfoFileForProject(String projectId, User user, String outputGeneratorClassName, Map<String, Set<String>> releaseIdsToSelectedAttachmentIds) throws TException {
-        assertId(projectId);
-        Project project = projectDatabaseHandler.getProjectById(projectId, user);
+    public String getLicenseInfoFileForProject(Project project, User user, String outputGeneratorClassName, Map<String, Set<String>> releaseIdsToSelectedAttachmentIds) throws TException {
         assertNotNull(project);
 
         Map<Release, Set<String>> releaseToAttachmentId = mapKeysToReleases(releaseIdsToSelectedAttachmentIds, user);
@@ -153,7 +156,7 @@ public class LicenseInfoHandler implements LicenseInfoService.Iface {
         Collection<LicenseInfoParsingResult> projectLicenseInfoResults = getAllReleaseLicenseInfos(releaseToAttachmentId, user);
         for (OutputGenerator generator : outputGenerators) {
             if (outputGeneratorClassName.equals(generator.getClass().getName())) {
-                return (String) generator.generateOutputFile(projectLicenseInfoResults, project.getName());
+                return (String) generator.generateOutputFile(projectLicenseInfoResults, project.getName(), project.getLicenseInfoHeaderText());
             }
         }
         throw new TException("Unknown output generator for String output: " + outputGeneratorClassName);
@@ -176,16 +179,14 @@ public class LicenseInfoHandler implements LicenseInfoService.Iface {
     }
 
     @Override
-    public ByteBuffer getLicenseInfoFileForProjectAsBinary(String projectId, User user, String outputGeneratorClassName, Map<String, Set<String>> releaseIdsToSelectedAttachmentIds) throws TException {
-        assertId(projectId);
-        Project project = projectDatabaseHandler.getProjectById(projectId, user);
+    public ByteBuffer getLicenseInfoFileForProjectAsBinary(Project project, User user, String outputGeneratorClassName, Map<String, Set<String>> releaseIdsToSelectedAttachmentIds) throws TException {
         assertNotNull(project);
 
         Map<Release, Set<String>> releaseToAttachmentIds = mapKeysToReleases(releaseIdsToSelectedAttachmentIds, user);
         Collection<LicenseInfoParsingResult> projectLicenseInfoResults = getAllReleaseLicenseInfos(releaseToAttachmentIds, user);
         for (OutputGenerator generator : outputGenerators) {
             if (outputGeneratorClassName.equals(generator.getClass().getName())) {
-                return ByteBuffer.wrap((byte[]) generator.generateOutputFile(projectLicenseInfoResults, project.getName()));
+                return ByteBuffer.wrap((byte[]) generator.generateOutputFile(projectLicenseInfoResults, project.getName(), project.getLicenseInfoHeaderText()));
             }
         }
         throw new TException("Unknown output generator for binary output: " + outputGeneratorClassName);
@@ -284,5 +285,11 @@ public class LicenseInfoHandler implements LicenseInfoService.Iface {
         TException getTExceptionCause() {
             return (TException) getCause();
         }
+    }
+
+    public String getDefaultLicenseInfoHeaderText() throws IOException {
+        String defaultLicenseInfoHeader =  IOUtils.toString(this.getClass().getResourceAsStream(DEFAULT_LICENSE_INFO_HEADER_FILE), "UTF-8");
+        defaultLicenseInfoHeader = defaultLicenseInfoHeader.replaceAll("(?m)^#.*\\n", "");  // ignore comments in template file
+        return defaultLicenseInfoHeader;
     }
 }

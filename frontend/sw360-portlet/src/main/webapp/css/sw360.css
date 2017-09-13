@@ -534,3 +534,9 @@ input[readonly].clickable {
 .aui .table.dataTable tr.added td.sorting_1 {
 	background-color: #aaffaa;
 }
+
+.projectLicenseInfoHeaderText {
+    width: 95% !important;
+    resize: vertical;
+    background-color: white !important;
+}

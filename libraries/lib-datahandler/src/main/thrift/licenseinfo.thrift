@@ -11,6 +11,7 @@
  */
 include "users.thrift"
 include "components.thrift"
+include "projects.thrift"
 
 namespace java org.eclipse.sw360.datahandler.thrift.licenseinfo
 namespace php sw360.thrift.licenseinfo
@@ -18,6 +19,7 @@ namespace php sw360.thrift.licenseinfo
 typedef components.Release Release
 typedef components.Attachment Attachment
 typedef users.User User
+typedef projects.Project Project
 
 enum LicenseInfoRequestStatus{
     SUCCESS = 0,
@@ -75,9 +77,9 @@ service LicenseInfoService {
      * get a copyright and license information file on all linked releases and linked releases of linked projects (recursively)
      * output format as specified by outputType
      */
-    string getLicenseInfoFileForProject(1: string projectId, 2: User user, 3: string outputType, 4: map<string, set<string>>releaseIdsToSelectedAttachmentIds);
+    string getLicenseInfoFileForProject(1: Project project, 2: User user, 3: string outputType, 4: map<string, set<string>>releaseIdsToSelectedAttachmentIds);
 
-    binary getLicenseInfoFileForProjectAsBinary(1: string projectId, 2: User user, 3: string outputType, 4: map<string, set<string>>releaseIdsToSelectedAttachmentIds);
+    binary getLicenseInfoFileForProjectAsBinary(1: Project project, 2: User user, 3: string outputType, 4: map<string, set<string>>releaseIdsToSelectedAttachmentIds);
 
     /**
       * returns all available output types

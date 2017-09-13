@@ -36,7 +36,7 @@ public class LicenseInfoGenerator extends OutputGenerator<String> {
     }
 
     @Override
-    public String generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName) throws SW360Exception {
+    public String generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName, String licenseInfoHeaderText) throws SW360Exception {
         try {
             VelocityContext vc = getConfiguredVelocityContext();
 
@@ -48,6 +48,7 @@ public class LicenseInfoGenerator extends OutputGenerator<String> {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
+            vc.put(LICENSE_INFO_HEADER_TEXT, licenseInfoHeaderText);
             vc.put(LICENSES_CONTEXT_PROPERTY, licenses);
 
             SortedMap<String, Set<String>> sortedAcknowledgements = getSortedAcknowledgements(sortedLicenseInfos);

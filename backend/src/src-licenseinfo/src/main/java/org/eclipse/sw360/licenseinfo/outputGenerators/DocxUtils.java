@@ -37,6 +37,10 @@ public class DocxUtils {
         replaceText(document, "$", projectName);
     }
 
+    public static void setHeaderTextInDocument(XWPFDocument document, String headerText) {
+        replaceText(document, "$licenseInfoHeader", headerText);
+    }
+
     public static XWPFTable createTableAndAddReleasesTableHeaders(XWPFDocument document, String[] headers) {
         if (headers.length < 5) {
             throw new IllegalArgumentException("Too few table headers found. Need 4 table headers.");

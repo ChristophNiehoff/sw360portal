@@ -243,6 +243,11 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.sw360</groupId>
+            <artifactId>src-licenseinfo</artifactId>
+            <version>3.1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <!-- For deployment right to your local liferay folder -->

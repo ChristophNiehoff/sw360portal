@@ -13,6 +13,7 @@
 
 package org.eclipse.sw360.licenseinfo.outputGenerators;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -37,12 +38,13 @@ public class XhtmlGenerator extends OutputGenerator<String> {
     }
 
     @Override
-    public String generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName) throws SW360Exception {
+    public String generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName, String licenseInfoHeaderText) throws SW360Exception {
         try {
             VelocityContext vc = getConfiguredVelocityContext();
 
             SortedMap<String, LicenseInfoParsingResult> sortedLicenseInfos = getSortedLicenseInfos(projectLicenseInfoResults);
             vc.put(LICENSE_INFO_RESULTS_CONTEXT_PROPERTY, sortedLicenseInfos);
+            vc.put(LICENSE_INFO_HEADER_TEXT, convertHeaderTextToHTML(licenseInfoHeaderText) );
 
             List<LicenseNameWithText> licenseNamesWithTexts = getSortedLicenseNameWithTexts(projectLicenseInfoResults);
             int id = 1;
@@ -86,6 +88,12 @@ public class XhtmlGenerator extends OutputGenerator<String> {
             sorted.addAll(unsorted);
         }
         return sorted;
+    }
+
+    private String convertHeaderTextToHTML(String headerText) {
+        String html = StringEscapeUtils.escapeHtml(headerText);
+        html = html.replace("\n", "<br>");
+        return html;
     }
 }
 

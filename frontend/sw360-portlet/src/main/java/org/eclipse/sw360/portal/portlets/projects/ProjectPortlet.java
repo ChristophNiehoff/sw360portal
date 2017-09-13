@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.model.Organization;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.common.*;
@@ -42,6 +43,7 @@ import org.eclipse.sw360.datahandler.thrift.vendors.VendorService;
 import org.eclipse.sw360.datahandler.thrift.vulnerabilities.*;
 import org.eclipse.sw360.exporter.ProjectExporter;
 import org.eclipse.sw360.exporter.ReleaseExporter;
+import org.eclipse.sw360.licenseinfo.LicenseInfoHandler;
 import org.eclipse.sw360.portal.common.*;
 import org.eclipse.sw360.portal.portlets.FossologyAwarePortlet;
 import org.eclipse.sw360.portal.users.LifeRayUserSession;
@@ -159,12 +161,13 @@ public class ProjectPortlet extends FossologyAwarePortlet {
         Map<String, Set<String>> selectedReleaseAndAttachmentIds = ProjectPortletUtils.getSelectedReleaseAndAttachmentIdsFromRequest(request);
         try {
             Project project = projectClient.getProjectById(projectId, user);
+            insertProjectLicenseInfoHeaderText(project);
             String projectName = project != null ? project.getName() : "Unknown-Project";
             String timestamp = SW360Utils.getCreatedOn();
             OutputFormatInfo outputFormatInfo = licenseInfoClient.getOutputFormatInfoForGeneratorClass(generatorClassName);
             String filename = "LicenseInfo-" + projectName + "-" + timestamp + "." + outputFormatInfo.getFileExtension();
             if (outputFormatInfo.isOutputBinary) {
-                ByteBuffer licenseInfoByteBuffer = licenseInfoClient.getLicenseInfoFileForProjectAsBinary(projectId, user, generatorClassName, selectedReleaseAndAttachmentIds);
+                ByteBuffer licenseInfoByteBuffer = licenseInfoClient.getLicenseInfoFileForProjectAsBinary(project, user, generatorClassName, selectedReleaseAndAttachmentIds);
                 byte[] licenseInfoByteArray = new byte[licenseInfoByteBuffer.remaining()];
                 licenseInfoByteBuffer.get(licenseInfoByteArray);
                 String mimetype = outputFormatInfo.getMimeType();
@@ -174,7 +177,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
                 PortletResponseUtil.sendFile(request, response, filename, licenseInfoByteArray, mimetype);
             } else {
                 PortletResponseUtil.sendFile(request, response, filename, licenseInfoClient
-                        .getLicenseInfoFileForProject(projectId, user, generatorClassName, selectedReleaseAndAttachmentIds)
+                        .getLicenseInfoFileForProject(project, user, generatorClassName, selectedReleaseAndAttachmentIds)
                         .getBytes(), outputFormatInfo.getMimeType());
             }
         } catch (TException e) {
@@ -636,6 +639,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
                         PermissionUtils.makePermission(project, user).isActionAllowed(RequestedAction.WRITE));
 
                 addProjectBreadcrumb(request, response, project);
+                insertProjectLicenseInfoHeaderText(project);
 
             } catch (TException e) {
                 log.error("Error fetching project from backend!", e);
@@ -814,6 +818,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
             try {
                 ProjectService.Iface client = thriftClients.makeProjectClient();
                 project = client.getProjectByIdForEdit(id, user);
+                insertProjectLicenseInfoHeaderText(project);
                 usingProjects = client.searchLinkingProjects(id, user);
             } catch (TException e) {
                 log.error("Something went wrong with fetching the project", e);
@@ -823,6 +828,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
 
             request.setAttribute(PROJECT, project);
             request.setAttribute(DOCUMENT_ID, id);
+            request.setAttribute(DEFAULT_LICENSE_INFO_HEADER_TEXT, StringEscapeUtils.escapeJava(getProjectDefaultLicenseInfoHeaderText()));
 
             setAttachmentsInRequest(request, project.getAttachments());
             try {
@@ -851,6 +857,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
                     log.error("Could not put empty linked projects or linked releases in projects view.", e);
                 }
                 request.setAttribute(USING_PROJECTS, Collections.emptySet());
+                request.setAttribute(DEFAULT_LICENSE_INFO_HEADER_TEXT, StringEscapeUtils.escapeJava(getProjectDefaultLicenseInfoHeaderText()));
 
                 SessionMessages.add(request, "request_processed", "New Project");
             }
@@ -911,6 +918,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
                 ProjectPortletUtils.updateProjectFromRequest(request, project);
                 String ModerationRequestCommentMsg = request.getParameter(MODERATION_REQUEST_COMMENT);
                 user.setCommentMadeDuringModerationRequest(ModerationRequestCommentMsg);
+                validateLicenseInfoHeaderText(project);
                 requestStatus = client.updateProject(project, user);
                 setSessionMessage(request, requestStatus, "Project", "update", printName(project));
                 cleanUploadHistory(user.getEmail(), id);
@@ -997,5 +1005,30 @@ public class ProjectPortlet extends FossologyAwarePortlet {
         responseData.put(PortalConstants.VULNERABILITY_ID, vulnerabilityExternalId);
         PrintWriter writer = response.getWriter();
         writer.write(responseData.toString());
+    }
+
+    private void insertProjectLicenseInfoHeaderText(Project project) {
+        if(!project.isSetLicenseInfoHeaderText()) {
+            String defaultLicenseInfoHeaderText = getProjectDefaultLicenseInfoHeaderText();
+            project.setLicenseInfoHeaderText(defaultLicenseInfoHeaderText);
+        }
+    }
+
+    private String getProjectDefaultLicenseInfoHeaderText() {
+        String defaultLicenseInfoHeader = "";
+        try {
+            defaultLicenseInfoHeader = (new LicenseInfoHandler()).getDefaultLicenseInfoHeaderText();
+        } catch (IOException e) {
+            log.error("Could not load default license info header text.", e);
+        }
+        return defaultLicenseInfoHeader;
+    }
+
+    private void validateLicenseInfoHeaderText(Project project) {
+        String projectTextNoNewline = project.getLicenseInfoHeaderText().replace("\n", ""). replace("\r", "");
+        String defaultTextNoNewline = getProjectDefaultLicenseInfoHeaderText().replace("\n", ""). replace("\r", "");
+        if(projectTextNoNewline.equals(defaultTextNoNewline)) {
+            project.unsetLicenseInfoHeaderText();
+        }
     }
 }

@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.model.Organization;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.eclipse.sw360.datahandler.common.CommonUtils;
@@ -677,6 +678,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
         String id = request.getParameter(PROJECT_ID);
         request.setAttribute(DOCUMENT_TYPE, SW360Constants.TYPE_PROJECT);
         request.setAttribute(DOCUMENT_ID, id);
+        request.setAttribute(DEFAULT_LICENSE_INFO_HEADER_TEXT, getProjectDefaultLicenseInfoHeaderText());
         if (id != null) {
             try {
                 ProjectService.Iface client = thriftClients.makeProjectClient();
@@ -873,6 +875,7 @@ public class ProjectPortlet extends FossologyAwarePortlet {
         request.setAttribute(DOCUMENT_TYPE, SW360Constants.TYPE_PROJECT);
         Project project;
         Set<Project> usingProjects;
+        request.setAttribute(DEFAULT_LICENSE_INFO_HEADER_TEXT, getProjectDefaultLicenseInfoHeaderText());
 
         if (id != null) {
 
@@ -916,7 +919,6 @@ public class ProjectPortlet extends FossologyAwarePortlet {
                     log.error("Could not put empty linked projects or linked releases in projects view.", e);
                 }
                 request.setAttribute(USING_PROJECTS, Collections.emptySet());
-
                 SessionMessages.add(request, "request_processed", "New Project");
             }
         }
@@ -1062,5 +1064,16 @@ public class ProjectPortlet extends FossologyAwarePortlet {
         responseData.put(PortalConstants.VULNERABILITY_ID, vulnerabilityExternalId);
         PrintWriter writer = response.getWriter();
         writer.write(responseData.toString());
+    }
+
+    private String getProjectDefaultLicenseInfoHeaderText() {
+        final LicenseInfoService.Iface licenseInfoClient = thriftClients.makeLicenseInfoClient();
+        try {
+            String defaultLicenseInfoHeaderText = licenseInfoClient.getDefaultLicenseInfoHeaderText();
+            return defaultLicenseInfoHeaderText;
+        } catch (TException e) {
+            log.error("Could not load default license info header text from backend.", e);
+            return "";
+        }
     }
 }

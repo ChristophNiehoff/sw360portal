@@ -16,6 +16,7 @@ import com.google.common.collect.Sets;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.sw360.datahandler.common.SW360Utils;
 import org.eclipse.sw360.datahandler.thrift.MainlineState;
@@ -76,6 +77,16 @@ public class ProjectPortletUtils {
 
                 case ATTACHMENTS:
                     project.setAttachments(PortletUtils.updateAttachmentsFromRequest(request, project.getAttachments()));
+                    break;
+
+                case LICENSE_INFO_HEADER_TEXT:
+                    // if `LICENSE_INFO_HEADER_TEXT` is not in the request then we want this to be unset in the `project`
+                    String licenseInfoHeader = request.getParameter(field.toString());
+                    if(licenseInfoHeader == null) {
+                        project.unsetLicenseInfoHeaderText();
+                    } else {
+                        project.setLicenseInfoHeaderText(StringEscapeUtils.unescapeHtml(licenseInfoHeader));
+                    }
                     break;
 
                 case ROLES:

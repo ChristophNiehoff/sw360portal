@@ -26,6 +26,7 @@
     <jsp:useBean id="selectedTab" class="java.lang.String" scope="request"/>
     <jsp:useBean id="numberOfUncheckedVulnerabilities" type="java.lang.Integer" scope="request"/>
     <jsp:useBean id="numberOfVulnerabilities" type="java.lang.Integer" scope="request"/>
+    <jsp:useBean id="defaultLicenseInfoHeaderText" class="java.lang.String" scope="request" />
 </c:catch>
 <%@include file="/html/utils/includes/logError.jspf" %>
 <core_rt:if test="${empty attributeNotFoundException}">

@@ -244,4 +244,29 @@ public abstract class OutputGenerator<T> {
         }
         return sorted;
     }
+
+    protected Collection<LicenseInfoParsingResult> renderLicenseInfoParsingResults(Collection<LicenseInfoParsingResult> licenseInfoResults) {
+        return licenseInfoResults.stream().map( item -> renderLicenseInfoParsingResult(item) ).collect(Collectors.toList());
+    }
+
+    private LicenseInfoParsingResult renderLicenseInfoParsingResult(LicenseInfoParsingResult licenseInfoParsingResult) {
+        LicenseInfoParsingResult newLicenseInfoParsingResult = licenseInfoParsingResult.deepCopy();
+        LicenseInfo licenseInfo = newLicenseInfoParsingResult.getLicenseInfo();
+        Set<LicenseNameWithText> licenseNamesWithTexts = licenseInfo.getLicenseNamesWithTexts();
+
+        Set<LicenseNameWithText> renderedLicenseNamesWithTexts = licenseNamesWithTexts.stream().map( item -> renderLicenseNameWithText(item) ).collect(Collectors.toSet());
+
+        licenseInfo.setLicenseNamesWithTexts(renderedLicenseNamesWithTexts);
+        newLicenseInfoParsingResult.setLicenseInfo(licenseInfo);
+
+        return newLicenseInfoParsingResult;
+    }
+
+    private LicenseNameWithText renderLicenseNameWithText(LicenseNameWithText licenseNameWithText) {
+        String renderedLicenseText = renderLicenseText( licenseNameWithText.getLicenseText() );
+        licenseNameWithText.setLicenseText(renderedLicenseText);
+        return licenseNameWithText;
+    }
+
+    protected abstract String renderLicenseText(String licenseText);
 }

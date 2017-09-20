@@ -98,7 +98,7 @@ Open Source Software Licenses
 ##
 #set($licenseText = "<no license text available>")
 #if($license.licenseText)
-#set($licenseText = $esc.xml($license.licenseText))
+#set($licenseText = $license.licenseText)
 #end## if($license.licenseText)
 ##
 #set($licenseId = $licenseNameWithTextToReferenceId.get($license))

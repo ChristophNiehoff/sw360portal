@@ -59,6 +59,11 @@
             <artifactId>saxon-dom</artifactId>
             <version>8.7</version>
         </dependency>
+	<dependency>
+   	    <groupId>com.github.tkqubo</groupId>
+            <artifactId>html-to-markdown</artifactId>
+            <version>0.5.0</version>
+        </dependency>
     </dependencies>
     <parent>
         <groupId>org.eclipse.sw360</groupId>

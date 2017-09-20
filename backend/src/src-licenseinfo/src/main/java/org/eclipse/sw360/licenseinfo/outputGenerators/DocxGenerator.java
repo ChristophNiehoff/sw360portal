@@ -31,10 +31,11 @@ public class DocxGenerator extends OutputGenerator<byte[]> {
 
     @Override
     public byte[] generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName) throws SW360Exception {
+        Collection<LicenseInfoParsingResult> renderedProjectLicenseInfoResults = renderLicenseInfoParsingResults(projectLicenseInfoResults);
         try {
             XWPFDocument document = new XWPFDocument(this.getClass().getResourceAsStream("/templateFrontpageContent.docx"));
 
-            fillDocument(document, projectLicenseInfoResults, projectName);
+            fillDocument(document, renderedProjectLicenseInfoResults, projectName);
 
             ByteArrayOutputStream docxOutputStream = new ByteArrayOutputStream();
             document.write(docxOutputStream);
@@ -60,6 +61,11 @@ public class DocxGenerator extends OutputGenerator<byte[]> {
 
         addLicenseTextsHeader(document, "Appendix - License Texts");
         addLicenseTexts(document, projectLicenseInfoResults);
+    }
+
+    @Override
+    protected String renderLicenseText(String licenseText) {
+        return licenseText + "\n\n DocxGenerator \n\n";
     }
 }
 

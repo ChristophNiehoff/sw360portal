@@ -29,12 +29,18 @@ public class XhtmlGenerator extends OutputGenerator<String> {
 
     @Override
     public String generateOutputFile(Collection<LicenseInfoParsingResult> projectLicenseInfoResults, String projectName) throws SW360Exception {
+        Collection<LicenseInfoParsingResult> renderedProjectLicenseInfoResults = renderLicenseInfoParsingResults(projectLicenseInfoResults);
         try {
-            return renderTemplateWithDefaultValues(projectLicenseInfoResults, XHTML_TEMPLATE_FILE);
+            return renderTemplateWithDefaultValues(renderedProjectLicenseInfoResults, XHTML_TEMPLATE_FILE);
         } catch (Exception e) {
             LOGGER.error("Could not generate xhtml license info file", e);
             return "License information could not be generated.\nAn exception occured: " + e.toString();
         }
+    }
+
+    @Override
+    protected String renderLicenseText(String licenseText) {
+        return licenseText + "\n\n HtmlGenerator \n\n";
     }
 }
 

@@ -53,7 +53,9 @@
 
 <%@include file="/html/utils/includes/expandableTreetableSetup.jspf"%>
 <script>
-    $(window).load(function () {
-        setUpExpandableTreetable("LinkedReleasesInfo", '<%=loadLinkedReleasesRowsURL%>');
+    require(['jquery', 'modules/expandableTreetable'], function($, expandableTreetable) {
+        $(window).load(function () {
+            expandableTreetable.setUpExpandableTreetable("LinkedReleasesInfo", '<%=loadLinkedReleasesRowsURL%>', '<portlet:namespace/><%=PortalConstants.PARENT_BRANCH_ID%>', '<portlet:namespace/>parentScopeGroupId', '${pageContext.getAttribute("scopeGroupId")}');
+        });
     });
 </script>

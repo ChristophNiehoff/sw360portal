@@ -25,32 +25,33 @@
     </div>
 
     <script>
-          var usingProjectsTable;
+        require(['jquery', 'datatables'], function($) {
+              var usingProjectsTable;
 
-          function createUsingProjectsTable() {
-                var result = [];
+              function createUsingProjectsTable() {
+                    var result = [];
 
-                <core_rt:forEach items="${usingProjects}" var="project">
-                result.push([
-                    "<sw360:DisplayProjectLink project="${project}"/>",
-                    '<sw360:out value="${project.businessUnit}"/>',
-                    '<sw360:DisplayUserEmail email="${project.projectResponsible}" bare="true"/>'
-                ]);
-                </core_rt:forEach>
+                    <core_rt:forEach items="${usingProjects}" var="project">
+                    result.push([
+                        "<sw360:DisplayProjectLink project="${project}"/>",
+                        '<sw360:out value="${project.businessUnit}"/>',
+                        '<sw360:DisplayUserEmail email="${project.projectResponsible}" bare="true"/>'
+                    ]);
+                    </core_rt:forEach>
 
-                usingProjectsTable = $('#usingProjectsTable').DataTable({
-                    "pagingType": "simple_numbers",
-                    "data": result,
-                    dom: "lrtip",
-                    "searching": false,
-                    "lengthChange": false,
-                    "autoWidth": false
-                });
-          }
+                    usingProjectsTable = $('#usingProjectsTable').DataTable({
+                        "pagingType": "simple_numbers",
+                        "data": result,
+                        dom: "lrtip",
+                        "searching": false,
+                        "lengthChange": false,
+                        "autoWidth": false
+                    });
+              }
 
-          $( window ).on( "load", function() {
-              createUsingProjectsTable();
-          });
-
+              $( window ).on( "load", function() {
+                  createUsingProjectsTable();
+              });
+        });
     </script>
 </core_rt:if>

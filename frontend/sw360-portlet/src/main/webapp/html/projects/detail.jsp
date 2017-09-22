@@ -11,10 +11,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
-<%@include file="/html/init.jsp"%>
+<%@ include file="/html/init.jsp"%>
 <%-- the following is needed by liferay to display error messages--%>
-<%@include file="/html/utils/includes/errorKeyToMessage.jspf"%>
-
+<%@ include file="/html/utils/includes/errorKeyToMessage.jspf"%>
 
 <portlet:defineObjects />
 <liferay-theme:defineObjects />
@@ -43,11 +42,12 @@
     <div id="header"></div>
     <p class="pageHeader"><span class="pageHeaderBigSpan">Project: <sw360:ProjectName project="${project}"/></span>
         <span class="pull-right">
-        <input type="button" onclick="editProject()" id="edit" value="Edit" class="addButton">
+        <input type="button" id="projecteditButton" value="Edit" class="addButton">
     </span>
     </p>
 
     <core_rt:set var="inProjectDetailsContext" value="true" scope="request"/>
+    <%@ include file="/html/utils/includes/requirejs.jspf" %>
     <%@include file="/html/projects/includes/detailOverview.jspf"%>
 </core_rt:if>
 <script>
@@ -65,8 +65,9 @@
             }
     );
 
-    function editProject() {
-        window.location ='<portlet:renderURL ><portlet:param name="<%=PortalConstants.PROJECT_ID%>" value="${project.id}"/><portlet:param name="<%=PortalConstants.PAGENAME%>" value="<%=PortalConstants.PAGENAME_EDIT%>"/></portlet:renderURL>'
-    }
-
+    require(['jquery'], function($) {
+        $('#projecteditButton').on('click', function() {
+            window.location ='<portlet:renderURL ><portlet:param name="<%=PortalConstants.PROJECT_ID%>" value="${project.id}"/><portlet:param name="<%=PortalConstants.PAGENAME%>" value="<%=PortalConstants.PAGENAME_EDIT%>"/></portlet:renderURL>';
+        });
+    });
 </script>

@@ -47,10 +47,9 @@
         <tfoot>
         <tr>
             <td>
-                <input type="button"
-                       onclick="redrawFossTable();"
+                <input type="button" id="redrawFossTableButton"
                        value="Refresh Status" title="Refresh the status for the selected ClearingTeam"/>
-                <input type="button"
+                <input type="button" id="sendToFossologyButton"
                        onclick="sendToFossology($('#fieldId').val(), $('#releaseId').val(), $('#clearingTeam').val()) "
                        value="Send For Clearing" title="Send or make available this release to the selected Clearing Team"/>
             </td>
@@ -62,11 +61,6 @@
     </table>
 
 </div>
-
-<script type="text/javascript" src="<%=request.getContextPath()%>/webjars/jquery-validation/1.15.1/jquery.validate.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/webjars/jquery-validation/1.15.1/additional-methods.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/webjars/jquery-ui/1.12.1/jquery-ui.min.js"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%>/webjars/datatables/1.10.15/js/jquery.dataTables.min.js"></script>
 
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/dataTable_Siemens.css">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/sw360.css">
@@ -82,97 +76,101 @@
 
 
 <script type="text/javascript">
-    var fosstable;
-    var objectNamespacer = objectNamespacerOf('<portlet:namespace/>');
+    require(['jquery', /* jquery-plugins: */ 'datatables', 'jquery-ui', 'jquery-confirm', 'jquery.validate.min', 'jquery.validate-addon'], function($) {
+        var fosstable;
+        var objectNamespacer = objectNamespacerOf('<portlet:namespace/>');
 
-    var refreshClearing = false;
+        var refreshClearing = false;
 
-    function redrawFossTable() {
-        fosstable.draw();
-    }
+        $('#redrawFossTableButton').on('click', redrawFossTable);
 
-    function updateAttachmentName(attachment) {
-        $('#attachmentFossology').val(attachment);
-    }
+        function redrawFossTable() {
+            fosstable.draw();
+        }
 
-    function createFossTable() {
-        var $releaseId = $('#releaseId');
-        var $clearingTeam = $('#clearingTeam');
+        function updateAttachmentName(attachment) {
+            $('#attachmentFossology').val(attachment);
+        }
 
-        fosstable = $('#attachmentFossologyStatus').DataTable({
-            ajax: {
-                url: '<%=getFossologyStatusURL%>',
-                type: 'POST',
-                data: function (data) {
-                    var releaseId = $releaseId.val();
-                    var clearingTeam = $clearingTeam.val();
+        function createFossTable() {
+            var $releaseId = $('#releaseId');
+            var $clearingTeam = $('#clearingTeam');
 
-                    data = data || {};
-                    data.releaseId = releaseId;
-                    data.clearingTeam = clearingTeam;
-                    data.cached = !refreshClearing;
+            fosstable = $('#attachmentFossologyStatus').DataTable({
+                ajax: {
+                    url: '<%=getFossologyStatusURL%>',
+                    type: 'POST',
+                    data: function (data) {
+                        var releaseId = $releaseId.val();
+                        var clearingTeam = $clearingTeam.val();
 
-                    refreshClearing = true;
+                        data = data || {};
+                        data.releaseId = releaseId;
+                        data.clearingTeam = clearingTeam;
+                        data.cached = !refreshClearing;
 
-                    return objectNamespacer(data);
+                        refreshClearing = true;
+
+                        return objectNamespacer(data);
+                    },
+                    dataSrc: function (json) {
+                        updateAttachmentName(json.attachment);
+                        return json.data;
+                    }
                 },
-                dataSrc: function(json) {
-                    updateAttachmentName(json.attachment);
-                    return json.data;
-                }
-            },
-            serverSide: true,
-            filter: false,
-            sortable: false,
-            paginate: false,
-            processing: true,
-            scrollY: '75%',
-            columns: [
-                {title: "Clearing Team"},
-                {title: "Fossology Status"}
-            ],
-            autoWidth: false
+                serverSide: true,
+                filter: false,
+                sortable: false,
+                paginate: false,
+                processing: true,
+                scrollY: '75%',
+                columns: [
+                    {title: "Clearing Team"},
+                    {title: "Fossology Status"}
+                ],
+                autoWidth: false
+            });
+
+            $releaseId.change(redrawFossTable);
+        }
+
+        //This can not be document ready function as liferay definitions need to be loaded first
+        $(window).load(function () {
+            createFossTable();
         });
 
-        $releaseId.change(redrawFossTable);
-    }
+        function openSelectClearingDialog(fieldId, releaseId) {
+            refreshClearing = false;
+            $('#fieldId').val(fieldId);
+            $('#releaseId').val(releaseId).change();
+            openDialog('fossologyClearing', 'clearingTeam', .5, .5);
+        }
 
-    //This can not be document ready function as liferay definitions need to be loaded first
-    $(window).load(function () {
-        createFossTable();
-    });
+        function sendToFossology(fieldId, releaseId, clearingTeam) {
+            closeOpenDialogs();
+            var $responseField = $('#' + fieldId);
+            $responseField.html("Sending...");
 
-    function openSelectClearingDialog(fieldId, releaseId) {
-        refreshClearing = false;
-        $('#fieldId').val(fieldId);
-        $('#releaseId').val(releaseId).change();
-        openDialog('fossologyClearing', 'clearingTeam', .5, .5);
-    }
-
-    function sendToFossology(fieldId, releaseId, clearingTeam) {
-        closeOpenDialogs();
-        var $responseField = $('#' + fieldId);
-        $responseField.html("Sending...");
-
-        $.ajax({
-            type: 'POST',
-            url: '<%=sendToFossologyURL%>',
-            cache: false,
-            data: objectNamespacer({
-                releaseId: releaseId,
-                clearingTeam: clearingTeam
-            })
-        }).done(function (data) {
+            $.ajax({
+                type: 'POST',
+                url: '<%=sendToFossologyURL%>',
+                cache: false,
+                data: objectNamespacer({
+                    releaseId: releaseId,
+                    clearingTeam: clearingTeam
+                })
+            }).done(function (data) {
                     if (data.result == 'SUCCESS') {
                         $responseField.html("Sent");
                     } else {
                         $responseField.html("Error");
                     }
                 }
-        ).fail(function () {
-                    $responseField.html("Error");
-                });
-    }
+            ).fail(function () {
+                $responseField.html("Error");
+            });
+        }
+    });
 </script>
 
 

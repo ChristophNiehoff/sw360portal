@@ -36,7 +36,7 @@
         <core_rt:if test="${inProjectDetailsContext}">
             <div class="clear-float"></div>
             <span class="pull-right">
-                <input type="button" class="addButton" id="exportReleasesSpreadsheetButton" value="Export Spreadsheet" class="addButton" onclick="exportReleasesSpreadsheet()"/>
+                <input type="button" class="addButton" id="exportReleasesSpreadsheetButton" value="Export Spreadsheet" class="addButton"/>
             </span>
         </core_rt:if>
     </div>
@@ -49,11 +49,11 @@
 
 <%@include file="/html/utils/includes/fossologyClearing.jspf"%>
 
-<%--for javascript library loading --%>
-<%@ include file="/html/utils/includes/requirejs.jspf" %>
 <script type="text/javascript">
     require(['jquery', 'datatables', 'datatables_buttons', 'buttons.print'], function ($) {
         var releaseClearingTable;
+
+        $('#exportReleasesSpreadsheetButton').on('click',exportReleasesSpreadsheet);
 
         function renderActions(releaseId) {
             return "<img src='<%=request.getContextPath()%>/images/fossology-logo-24.gif' " +

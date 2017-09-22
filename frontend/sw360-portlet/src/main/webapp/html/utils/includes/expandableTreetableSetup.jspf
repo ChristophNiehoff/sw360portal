@@ -10,28 +10,30 @@
 --%>
 <%@include file="/html/init.jsp" %>
 <script>
-    function setUpExpandableTreetable(tableId, ajaxUrl) {
-        var tbl = $("#" + tableId);
-        tbl.treetable({
-            expandable: true,
-            onNodeExpand: function () {
-                var node = this;
-                if (node.children.length === 0) {
-                    jQuery.ajax({
-                        type: 'POST',
-                        url: ajaxUrl,
-                        cache: false,
-                        data: {
-                    <portlet:namespace/><%=PortalConstants.PARENT_BRANCH_ID%>:node.id,
-                    <portlet:namespace/>parentScopeGroupId:${pageContext.getAttribute('scopeGroupId')}
-                        }
-                }).
-                    done(function (html) {
-                        var rows = $(html).filter("tr");
-                        tbl.treetable("loadBranch", node, rows);
-                    });
+    require(['jquery', /* jquery-plugins */ 'jquery-treetable'], function($) {
+        function setUpExpandableTreetable(tableId, ajaxUrl) {
+            var tbl = $("#" + tableId);
+            tbl.treetable({
+                expandable: true,
+                onNodeExpand: function () {
+                    var node = this;
+                    if (node.children.length === 0) {
+                        jQuery.ajax({
+                            type: 'POST',
+                            url: ajaxUrl,
+                            cache: false,
+                            data: {
+                        <portlet:namespace/><%=PortalConstants.PARENT_BRANCH_ID%>:node.id,
+                        <portlet:namespace/>parentScopeGroupId:${pageContext.getAttribute('scopeGroupId')}
+                            }
+                    }).
+                        done(function (html) {
+                            var rows = $(html).filter("tr");
+                            tbl.treetable("loadBranch", node, rows);
+                        });
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
+    });
 </script>

@@ -96,7 +96,9 @@
 </table>
 
 <script>
-    $(document).ready( function() {
-        $('#licenseInfoHeaderText').height($('#licenseInfoHeaderText').prop('scrollHeight'));
+    require(['jquery'], function($) {
+        $(document).ready(function () {
+            $('#licenseInfoHeaderText').height($('#licenseInfoHeaderText').prop('scrollHeight'));
+        });
     });
 </script>
